@@ -1,14 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 
 function Login() {
+
+  const [error, setError] = useState('');
+
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email address').required('Email is required'),
         password: Yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
       });
+
+      const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+        console.log('Form values:', values);
+        try {
+          const response = await axios.post('http://localhost:3000/login', values);
+          console.log('Response:', response.data);
+        } catch (error) {
+          console.error('Error during login:', error);
+          if(error.response.data.error){
+            setError(error.response.data.error);
+          }else{
+            setError('')
+          }
+        }
+        setSubmitting(false);
+        resetForm();
+      }
+    
   return (
    <>
    <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -20,14 +42,7 @@ function Login() {
             password: '',
           }}
           validationSchema={validationSchema}
-          onSubmit={(values, { setSubmitting, resetForm }) => {
-            setTimeout(() => {
-              console.log(values);
-              setSubmitting(false);
-              resetForm();
-              alert('Login successful!');
-            }, 400);
-          }}
+          onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
             <Form className="space-y-4">
